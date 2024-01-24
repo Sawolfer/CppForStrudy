@@ -1,0 +1,3 @@
+/Users/macbookairbrpm/Documents/GitHub/CppForInno/cmake-build-debug/CMakeFiles/CppForInno.dir
+/Users/macbookairbrpm/Documents/GitHub/CppForInno/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/macbookairbrpm/Documents/GitHub/CppForInno/cmake-build-debug/CMakeFiles/rebuild_cache.dir
