@@ -7,9 +7,6 @@
 
 using namespace std;
 
-
-
-
 static class Box{
 
     unsigned int length;
@@ -42,7 +39,7 @@ public:
         width += box.width;
     }
     void display(){
-        std::cout << length << " " << weight << " " << width;
+        cout << length << " " << weight << " " << width;
     }
 
     string getVolume(){
@@ -81,13 +78,12 @@ public:
 static class Cube{
     int length;
 
-
-
 public:
     Cube(int l){
         length = l;
     }
-    Box  toBox(){
+
+    operator Box(){
         Box box(length, length, length);
         return box;
     }
@@ -97,8 +93,11 @@ public:
 int main(){
 
     Cube cube(3);
+    Box box(Box(cube));
 
-//    Box box(cube.toBox());
+    Box box1(1 ,2 ,3 );
+
+
 
     return 0;
 }
