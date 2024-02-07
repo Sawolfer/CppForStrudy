@@ -1,0 +1,12 @@
+
+
+in static variable types are known at stage of compiling and they can not change
+in dynamic types of variable can change while program will be working
+
+diamond problem : when both classes has one parent and it can make working of some methods complexier
+
+polymorphism is need when we do not want to make a lot different functions for diff types of variables and wants simply make one method for diff types
+
+abstract class has virtual methods and can be overrided from its subclasses
+
+lambda expression - одноразовая функция
