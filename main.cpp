@@ -22,7 +22,7 @@ public:
         return value;
     };
     K getKey(){
-        return K
+        return key;
     }
 };
 
@@ -43,8 +43,8 @@ class GenericStack : public GenericFunc<K, V>{
 
 public:
     void push(K, V) override{
-        GenericType<>
-        stack.push_back()
+//        GenericType<>
+        stack.push_back();
     }
     V pop(K) override{
 
