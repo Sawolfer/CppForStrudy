@@ -3,4 +3,4 @@ project(CppForInno)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(CppForInno main.cpp)
+add_executable(CppForInno A.cpp)
