@@ -2,7 +2,7 @@
 #include <string>
 
 using namespace std;
-// method that will alculate sum from ith to jth elements
+// method that will calculate sum from ith to jth elements
 int calculateSum(int *arr, int i, int j)
 {
     int *ptr = arr;
