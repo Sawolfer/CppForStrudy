@@ -24,6 +24,13 @@ public:
     vector<vector<double> > getMatrix(){
         return matrix;
     }
+    int getN(){
+        return n;
+    }
+    int getM(){
+        return m;
+    }
+
     friend ostream& operator<<(ostream& os, const Matrix& mat) {
         for (int i = 0; i < mat.n; ++i) {
             string output;
@@ -66,6 +73,10 @@ public:
             }
         }
         return true;
+    }
+
+    void set(int i, int j, double value){
+        matrix[i][j] = value;
     }
 
     Matrix& operator=(const Matrix& other) {
@@ -154,14 +165,6 @@ class SquareMatrix : public Matrix{
 public:
     SquareMatrix(int n) : Matrix(n, n){}
 
-    SquareMatrix& operator=(const SquareMatrix& other) {
-        if (this != &other) {
-            matrix = other.matrix;
-            n = other.n;
-            m = other.m;
-        }
-        return *this;
-    }
 };
 
 class IdentityMatrix : public SquareMatrix{
@@ -171,6 +174,13 @@ public:
         for (int i = 0; i < n; i++) {
             matrix[i][i] = 1;
         }
+    }
+    IdentityMatrix operator=(Matrix other){
+        if (this != &other) {
+            matrix = other.getMatrix();
+            n = other.getN();
+        }
+        return *this;
     }
 };
 
@@ -201,21 +211,66 @@ public:
 };
 
 double det(Matrix matA, int size){
+    int multi = 1;
     double determinant = 1;
+    for (int r = 0; r < size; r++){
+        int maxRow = r;
+        for(int i = r; i < size; i++){
+            if (abs(matA.getAt(i, r)) > abs(matA.getAt(maxRow, r))){
+                maxRow = i;
+            }
+        }
+        PermutationMatrix matP(size, r+1, maxRow+1);
+        Matrix tmp = matP * matA;
+        if (!(tmp.isEqual(matA))){
+            matA = matP * matA;
+            multi *= -1;
+        } else{
+            matA = matP * matA;
+        }
+
+        for (int er = r+1; er <size; er++){
+            if (matA.getAt(er, r)!=0){
+                EliminationMatrix matE(size, er+1, r+1, r, matA);
+                matA = matE * matA;
+            }
+        }
+    }
     for (int i = 0; i < size; i ++){
         determinant *= (matA.getAt(i, i));
     }
     return determinant;
 }
 
+void print(Matrix matA, Matrix matB, int size){
+    for (int r = 0; r < size; r++){
+
+        for (int c = 0; c < size; c++){
+            cout << fixed << setprecision(2) << matA.getAt(r, c) << " ";
+        }
+        for (int c = 0; c < size; c++){
+            cout << fixed << setprecision(2) << matB.getAt(r, c) << " ";
+        }
+        cout << endl;
+    }
+
+}
+
 int main() {
     int step=0;
     int n;
-    int multi = 1;
     cin >> n;
     vector<vector<int> > matrix;
     Matrix matA(n, n);
+    IdentityMatrix inverse(n);
     cin >> matA;
+    if (det(matA, n) == 0){
+        cout << "Error: matrix A is singular";
+        return 0;
+    }
+    cout << "Augmented matrix:\n";
+    print(matA, inverse, n);
+    cout << "Gaussian process:\n";
     for (int r = 0; r < n; r++){
         int maxRow = r;
         for(int i = r; i < n; i++){
@@ -226,29 +281,50 @@ int main() {
         PermutationMatrix matP(n, r+1, maxRow+1);
         Matrix tmp = matP * matA;
         if (!(tmp.isEqual(matA))){
+            inverse = matP * inverse;
             matA = matP * matA;
             step++;
             cout << "step #" << step << ": permutation\n";
-            cout << matA;
-            multi *= -1;
+            print(matA, inverse, n);
         } else{
             matA = matP * matA;
         }
+
         for (int er = r+1; er <n; er++){
             if (matA.getAt(er, r)!=0){
                 EliminationMatrix matE(n, er+1, r+1, r, matA);
+                inverse = matE * inverse;
                 matA = matE * matA;
                 step++;
                 cout << "step #" << step << ": elimination\n";
-                cout << matA;
+                print(matA, inverse, n);
             }
-
         }
     }
 
+    for (int r = n-1; r > 0; r--){
+        for (int er = r - 1; er >= 0; er--){
+            if (matA.getAt(er, r)!=0){
+                EliminationMatrix matE(n, er+1, r+1, r, matA);
+                inverse = matE * inverse;
+                matA = matE * matA;
+                step++;
+                cout << "step #" << step << ": elimination\n";
+                print(matA, inverse, n);
+            }
+        }
+    }
+    for (int i = 0; i < n; i++){
+        double multiplier = 1 / matA.getAt(i, i);
+        for (int j = 0; j < n; j++){
+            inverse.set(i, j, inverse.getAt(i, j) * multiplier);
+            matA.set(i, j, matA.getAt(i, j) * multiplier);
+        }
+    }
+    cout << "Diagonal normalization:\n";
+    print(matA, inverse, n);
 
-    cout << "result:\n";
-    cout << fixed << setprecision(2) << det(matA, n) * multi;
+    cout << "Result:\n" << inverse;
 
 
     return 0;
