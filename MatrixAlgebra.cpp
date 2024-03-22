@@ -31,7 +31,7 @@ public:
         return m;
     }
 
-    friend ostream& operator<<(ostream& os, const Matrix& mat) {
+     friend ostream& operator<<(ostream& os, const Matrix& mat) {
         for (int i = 0; i < mat.n; ++i) {
             string output;
             for (int j = 0; j < mat.m; ++j) {
@@ -210,6 +210,31 @@ public:
 
 };
 
+class ColumnVector : public Matrix{
+
+public:
+    ColumnVector(int n) : Matrix(n, 1){};
+    ColumnVector(int n, vector<vector<double> > matrix) : Matrix(n, 1, matrix){};
+
+    ColumnVector operator=(Matrix other) {
+        if (this != &other) {
+            matrix = other.getMatrix();
+            n = other.getN();
+        }
+        return *this;
+    }
+
+    friend ostream& operator<<(ostream& os, const ColumnVector& mat){
+        for (int i = 0; i < mat.n; ++i) {
+            cout << fixed <<setprecision(2) << mat.matrix[i][0] << " ";
+        }
+        cout << endl;
+        return os;
+    }
+
+};
+
+
 double det(Matrix matA, int size){
     int multi = 1;
     double determinant = 1;
@@ -242,13 +267,13 @@ double det(Matrix matA, int size){
     return determinant;
 }
 
-void print(Matrix matA, Matrix matB, int size){
-    for (int r = 0; r < size; r++){
+void print(Matrix matA, Matrix matB, int sizeA, int sizeB){
+    for (int r = 0; r < sizeA; r++){
 
-        for (int c = 0; c < size; c++){
+        for (int c = 0; c < sizeA; c++){
             cout << fixed << setprecision(2) << matA.getAt(r, c) << " ";
         }
-        for (int c = 0; c < size; c++){
+        for (int c = 0; c < sizeB; c++){
             cout << fixed << setprecision(2) << matB.getAt(r, c) << " ";
         }
         cout << endl;
@@ -260,16 +285,18 @@ int main() {
     int step=0;
     int n;
     cin >> n;
+    int nB;
     vector<vector<int> > matrix;
     Matrix matA(n, n);
-    IdentityMatrix inverse(n);
+    ColumnVector vectorB(n);
     cin >> matA;
+    cin >> nB;
+    cin >> vectorB;
     if (det(matA, n) == 0){
         cout << "Error: matrix A is singular";
         return 0;
     }
-    cout << "Augmented matrix:\n";
-    print(matA, inverse, n);
+
     cout << "Gaussian process:\n";
     for (int r = 0; r < n; r++){
         int maxRow = r;
@@ -281,11 +308,12 @@ int main() {
         PermutationMatrix matP(n, r+1, maxRow+1);
         Matrix tmp = matP * matA;
         if (!(tmp.isEqual(matA))){
-            inverse = matP * inverse;
+            vectorB = matP * vectorB;
             matA = matP * matA;
             step++;
             cout << "step #" << step << ": permutation\n";
-            print(matA, inverse, n);
+            cout << matA;
+            cout << vectorB;
         } else{
             matA = matP * matA;
         }
@@ -293,11 +321,12 @@ int main() {
         for (int er = r+1; er <n; er++){
             if (matA.getAt(er, r)!=0){
                 EliminationMatrix matE(n, er+1, r+1, r, matA);
-                inverse = matE * inverse;
+                vectorB = matE * vectorB;
                 matA = matE * matA;
                 step++;
                 cout << "step #" << step << ": elimination\n";
-                print(matA, inverse, n);
+                cout << matA;
+                cout << vectorB;
             }
         }
     }
@@ -306,25 +335,35 @@ int main() {
         for (int er = r - 1; er >= 0; er--){
             if (matA.getAt(er, r)!=0){
                 EliminationMatrix matE(n, er+1, r+1, r, matA);
-                inverse = matE * inverse;
+                vectorB = matE * vectorB;
                 matA = matE * matA;
                 step++;
                 cout << "step #" << step << ": elimination\n";
-                print(matA, inverse, n);
+                cout << matA;
+                cout << vectorB;
             }
         }
     }
     for (int i = 0; i < n; i++){
         double multiplier = 1 / matA.getAt(i, i);
         for (int j = 0; j < n; j++){
-            inverse.set(i, j, inverse.getAt(i, j) * multiplier);
-            matA.set(i, j, matA.getAt(i, j) * multiplier);
+            if (matA.getAt(i, j) != 0) {
+                matA.set(i, j, (matA.getAt(i, j) * multiplier));
+            }
+            else { continue;}
         }
-    }
-    cout << "Diagonal normalization:\n";
-    print(matA, inverse, n);
+        if (vectorB.getAt(i, 0) != 0) {
+            vectorB.set(i, 0,  multiplier * vectorB.getAt(i, 0));
+        } else { continue;}
 
-    cout << "Result:\n" << inverse;
+    }
+
+
+    cout << "Diagonal normalization:\n";
+    cout << matA;
+    cout << vectorB;
+
+    cout << "Result:\n" << vectorB;
 
 
     return 0;
