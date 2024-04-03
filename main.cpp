@@ -1,4 +1,7 @@
 #include <iostream>
+#include <vector>
+#include <string>
+#include <map>
 
 
 // source https://codeforces.com/group/x7EpYPdPGy/contest/514065/problem/A
@@ -87,4 +90,71 @@ protected:
         
     }
 
+};
+
+
+template<typename T>
+concept DerivedFromPhysicalItem = is_base_of<PhysicalItem, T>::value;
+
+template<typename T>
+class Container{
+
+private:
+    vector<T> elements;
+
+public:
+    bool find(T item){
+        return find(elements.begin(), elements.end(), item) != elements.end();
+    }
+    void removeItem(T newItem){
+        elements.erase(newItem);
+    }
+
+    void addItem(T newItem){
+        elements.push_back(newItem);
+    }
+
+    ~Container() = default;
+};
+
+template<DerivedFromPhysicalItem T>
+class Container{
+
+private:
+    map<string, T> elements;
+
+public:
+    bool find(T item){
+        return find(elements.begin(), elements.end(), item) != elements.end();
+    }
+    void removeItem(T newItem){
+        elements.erase(newItem.getName());
+    }
+
+    void addItem(T newItem){
+        elements.insert(pair<string, T>(newItem.getName(), newItem));
+    }
+
+    T find(string itemName){
+        return elements[itemName];
+    }
+
+    void removeItem(string itemName){    
+        elements.erase(itemName);
+    }
+    ~Container() = default;
+};
+
+template<typename T>
+class ContainerWithMaxCapacity : public Container{
+private:
+    int maxCapacity;    
+
+public:
+    void addItem(T item){
+        Container::addItem(item);
+    }
+    void show(){
+
+    }
 };
