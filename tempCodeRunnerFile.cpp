@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <iomanip>
-#include <cmath>
 
 using namespace std;
 
@@ -437,7 +436,10 @@ void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
     }
 }
 
-void LeastSquareApproximation(Matrix matA, ColumnVector vectorB, int n){
+int main() {
+    int step=0;
+    int n;
+    cin >> n;
     vector<vector<double> > input = vector<vector<double> >(n, vector<double>(2));
     for (int i = 0; i < n; i++){
         double t, b;
@@ -475,15 +477,6 @@ void LeastSquareApproximation(Matrix matA, ColumnVector vectorB, int n){
     Matrix x = inverseA * matATb;
     cout << "x~:\n";
     cout << x;
-}
-
-int main() {
-    int step=0;
-    int n;
-    cin >> n;
-    
-    
-
 
     return 0;
 }
