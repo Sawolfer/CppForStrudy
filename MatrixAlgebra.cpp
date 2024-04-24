@@ -21,17 +21,8 @@ public:
         this -> m = m;
         this -> matrix = matrix;
     }
-    vector<vector<double> > getMatrix(){
-        return matrix;
-    }
-    int getN(){
-        return n;
-    }
-    int getM(){
-        return m;
-    }
 
-     friend ostream& operator<<(ostream& os, const Matrix& mat) {
+    friend ostream& operator<<(ostream& os, const Matrix& mat) {
         for (int i = 0; i < mat.n; ++i) {
             string output;
             for (int j = 0; j < mat.m; ++j) {
@@ -54,6 +45,20 @@ public:
         }
         return is;
     }
+    int getN(){
+        return n;
+    }
+    int getM(){
+        return m;
+    }
+
+    vector<vector<double> > getMatrix(){
+        return matrix;
+    }
+
+    void set(int i, int j, double value){
+        matrix[i][j]=value;
+    }
 
     double getAt(int i, int j){
         return matrix[i][j];
@@ -73,10 +78,6 @@ public:
             }
         }
         return true;
-    }
-
-    void set(int i, int j, double value){
-        matrix[i][j] = value;
     }
 
     Matrix& operator=(const Matrix& other) {
@@ -145,7 +146,7 @@ public:
         return Matrix(0, 0, newMatrix);
 
     }
-    Matrix T (){
+    Matrix transpose (){
         vector<vector<double> > newMatrix;
         for (int i = 0; i < m; i++){
             vector<double> row;
@@ -164,7 +165,54 @@ class SquareMatrix : public Matrix{
 
 public:
     SquareMatrix(int n) : Matrix(n, n){}
+    SquareMatrix(int n, vector<vector<double> > matrix) : Matrix(n, n, matrix){}
+    
+    friend ostream& operator<<(ostream& os, const SquareMatrix& mat) {
+        for (int i = 0; i < mat.n; ++i) {
+            string output;
+            for (int j = 0; j < mat.n; ++j) {
+                if (j != mat.n - 1){
+                    cout << fixed << setprecision(2) << mat.matrix[i][j] << " ";
+                } else {
+                    cout << fixed << setprecision(2) << mat.matrix[i][j];
+                }
+            }
+            cout << endl;
+        }
+        return os;
+    }
 
+    friend istream& operator>>(istream& is, SquareMatrix& mat) {
+        for (int i = 0; i < mat.n; ++i) {
+            for (int j = 0; j < mat.n; ++j) {
+                is >> mat.matrix[i][j];
+            }
+        }
+        return is;
+    }
+    
+    SquareMatrix& operator= (const SquareMatrix& other){
+        if (this != &other) {
+            Matrix::operator=(other);
+        }
+        return *this;
+    }
+    SquareMatrix operator+(SquareMatrix& other){
+        Matrix result = Matrix::operator+(other);
+        return SquareMatrix(result.getN(), result.getMatrix());
+    }
+    SquareMatrix operator-(SquareMatrix& other){
+        Matrix result = Matrix::operator-(other);
+        return SquareMatrix(result.getN(), result.getMatrix());
+    }
+    SquareMatrix operator*(Matrix& other){
+        Matrix result = Matrix::operator*(other);
+        return SquareMatrix(result.getN(), result.getMatrix());
+    }
+    SquareMatrix transpose(){
+        Matrix result = Matrix::transpose();
+        return SquareMatrix(result.getN(), result.getMatrix());
+    }
 };
 
 class IdentityMatrix : public SquareMatrix{
@@ -175,12 +223,8 @@ public:
             matrix[i][i] = 1;
         }
     }
-    IdentityMatrix operator=(Matrix other){
-        if (this != &other) {
-            matrix = other.getMatrix();
-            n = other.getN();
-        }
-        return *this;
+    IdentityMatrix& operator= (const SquareMatrix& other){
+        return static_cast<IdentityMatrix &>(SquareMatrix::operator=(other));
     }
 };
 
@@ -216,12 +260,8 @@ public:
     ColumnVector(int n) : Matrix(n, 1){};
     ColumnVector(int n, vector<vector<double> > matrix) : Matrix(n, 1, matrix){};
 
-    ColumnVector operator=(Matrix other) {
-        if (this != &other) {
-            matrix = other.getMatrix();
-            n = other.getN();
-        }
-        return *this;
+    ColumnVector& operator=(const Matrix& other) {
+        return static_cast<ColumnVector&>(Matrix::operator=(other));
     }
 
     friend ostream& operator<<(ostream& os, const ColumnVector& mat){
@@ -281,20 +321,67 @@ void print(Matrix matA, Matrix matB, int sizeA, int sizeB){
 
 }
 
-int main() {
-    int step=0;
-    int n;
-    cin >> n;
-    int nB;
-    vector<vector<int> > matrix;
-    Matrix matA(n, n);
-    ColumnVector vectorB(n);
+Matrix inverse(Matrix matA, int n){
+    int step = 0;
+    IdentityMatrix inverse(n);
     cin >> matA;
-    cin >> nB;
-    cin >> vectorB;
     if (det(matA, n) == 0){
-        cout << "Error: matrix A is singular";
-        return 0;
+        return inverse;
+    }
+    for (int r = 0; r < n; r++){
+        int maxRow = r;
+        for(int i = r; i < n; i++){
+            if (abs(matA.getAt(i, r)) > abs(matA.getAt(maxRow, r))){
+                maxRow = i;
+            }
+        }
+        PermutationMatrix matP(n, r+1, maxRow+1);
+        Matrix tmp = matP * matA;
+        if (!(tmp.isEqual(matA))){
+            inverse = matP * inverse;
+            matA = matP * matA;
+            step++;
+        } else{
+            matA = matP * matA;
+        }
+
+        for (int er = r+1; er <n; er++){
+            if (matA.getAt(er, r)!=0){
+                EliminationMatrix matE(n, er+1, r+1, r, matA);
+                inverse = matE * inverse;
+                matA = matE * matA;
+                step++;
+            }
+        }
+    }
+
+    for (int r = n-1; r > 0; r--){
+        for (int er = r - 1; er >= 0; er--){
+            if (matA.getAt(er, r)!=0){
+                EliminationMatrix matE(n, er+1, r+1, r, matA);
+                inverse = matE * inverse;
+                matA = matE * matA;
+                step++;
+            }
+        }
+    }
+    for (int i = 0; i < n; i++){
+        double multiplier = 1 / matA.getAt(i, i);
+        for (int j = 0; j < n; j++){
+            inverse.set(i, j, inverse.getAt(i, j) * multiplier);
+            matA.set(i, j, matA.getAt(i, j) * multiplier);
+        }
+    }
+
+    return inverse;
+}
+
+void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
+    int step = 0;
+    int n = sizeA;
+    
+    if (det(matA, n) == 0){
+        return;
     }
 
     cout << "Gaussian process:\n";
@@ -311,9 +398,6 @@ int main() {
             vectorB = matP * vectorB;
             matA = matP * matA;
             step++;
-            cout << "step #" << step << ": permutation\n";
-            cout << matA;
-            cout << vectorB;
         } else{
             matA = matP * matA;
         }
@@ -324,9 +408,6 @@ int main() {
                 vectorB = matE * vectorB;
                 matA = matE * matA;
                 step++;
-                cout << "step #" << step << ": elimination\n";
-                cout << matA;
-                cout << vectorB;
             }
         }
     }
@@ -338,9 +419,6 @@ int main() {
                 vectorB = matE * vectorB;
                 matA = matE * matA;
                 step++;
-                cout << "step #" << step << ": elimination\n";
-                cout << matA;
-                cout << vectorB;
             }
         }
     }
@@ -357,14 +435,25 @@ int main() {
         } else { continue;}
 
     }
+}
 
+int main() {
+    int step=0;
+    int n, m;
+    cin >> n >> m;
+    vector<vector<int> > matrix;
+    Matrix matA(n, m);
+    ColumnVector vectorB(n);
+    cin >> matA;
+    cin >> vectorB;
+    
+    Matrix matAT = matA.transpose();
+    Matrix matATmatA = matAT * matA;
+    Matrix inverseA = inverse(matATmatA, n);
 
-    cout << "Diagonal normalization:\n";
-    cout << matA;
-    cout << vectorB;
-
-    cout << "Result:\n" << vectorB;
-
+    Matrix x = matAT * vectorB;
+    x = inverseA * x;
+    cout << x;
 
     return 0;
 }

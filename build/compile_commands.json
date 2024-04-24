@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/macbookairbrpm/Documents/GitHub/CppForInno/build",
+  "command": "/usr/bin/clang++    -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk -mmacosx-version-min=14.2   -std=gnu++2a -o CMakeFiles/CppForInno.dir/MatrixAlgebra.cpp.o -c /Users/macbookairbrpm/Documents/GitHub/CppForInno/MatrixAlgebra.cpp",
+  "file": "/Users/macbookairbrpm/Documents/GitHub/CppForInno/MatrixAlgebra.cpp"
+}
+]
