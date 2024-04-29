@@ -478,12 +478,18 @@ void LeastSquareApproximation(Matrix matA, ColumnVector vectorB, int n){
 }
 
 int main() {
-    int step=0;
+
+
     int n;
     cin >> n;
     
-    
+    Matrix matA(n, n);
+    ColumnVector vectorB(n);
+    cin >> matA;
+    cin >> vectorB;
 
+
+    
 
     return 0;
 }
