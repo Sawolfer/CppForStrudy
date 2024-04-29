@@ -454,6 +454,7 @@ int main() {
     cin >> vectorB;
     double approxValue;
     cin >> approxValue;
+
     Matrix a(n,n);
     ColumnVector b(n);
 
@@ -478,33 +479,61 @@ int main() {
         }
         b.set(i, 0, vectorB.getAt(i, 0) / matA.getAt(i, i));
     }
+
     cout << "alpha:\n";
     cout << a;
     cout << "beta:\n";
     cout << b;
+    
+    Matrix C(n, n);
+    Matrix B(n, n);
 
-    Matrix x(n, 1);
-    x = b;
-    int i = 1;
+    for (int i = 0; i < n; i++){
+        for (int j = i; j < n; j++){
+            C.set(i, j, a.getAt(i, j));
+        }
+        for (int j = 0; j < i; j++){
+            B.set(i, j, a.getAt(i, j));
+        }
+    }
+
+    cout << "B:\n";
+    cout << B;
+    cout << "C:\n";
+    cout << C;
+
+    Matrix x = b;
     double e = 100;
+    IdentityMatrix I(n);
+    int i = 0;
+
+    Matrix inv = (static_cast<Matrix>(I) - B);
+    cout << "I-B:\n";
+    cout << inv;
+    inv = inverse(inv, n);
+    cout << "(I-B)_-1:\n";
+    cout << inv;
+
     while (e > approxValue){
-        e = 0;
+        i++;
+        Matrix forE = x;
+        x = (inv * C) * forE;
+        Matrix tmp = inv * b;
+        x = x + tmp;
         cout << "x(" << i << "):\n";
-        Matrix tmp = (a * x + b) - x;
+        forE = forE - x;
+        e = 0;
         for (int j = 0; j < n; j++){
-            e += tmp.getAt(j, 0) * tmp.getAt(j, 0);
+            e += forE.getAt(j, 0) * forE.getAt(j, 0);
         }
         e = sqrt(e);
-        x = a * x + b;
-
         cout << x;
-
         cout << "e: " <<  e << endl;
         if (e <= approxValue){
             break;
         }
-        i++;
-    }
+    }   
+
     cout << "x~:\n";
     cout << x;
 
