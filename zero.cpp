@@ -443,99 +443,58 @@ void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
 
 int main() {
 
+    int numV0, numK0;
+    double a1, b1, a2, b2;
+    double v, k;
 
-    int n, m;
-    cin >> n;
+    double T, N;
 
-    SquareMatrix matA(n);
-    ColumnVector vectorB(n);
-    cin >> matA;
-    cin >> m;
-    cin >> vectorB;
-    double approxValue;
-    cin >> approxValue;
+    cin >> numV0 >> numK0;
+    cin >> a1 >> b1;
+    cin >> a2 >> b2;
+    cin >> T;
+    cin >> N;
 
-    Matrix a(n,n);
-    ColumnVector b(n);
+    double v0, k0;
 
-    for (int i = 0; i < n; i++){
-        int sum = 0;
-        for (int j = 0; j < n; j++){
-            sum += matA.getAt(i, j);
-        }
-        if (sum-matA.getAt(i, i) >= matA.getAt(i, i)){
-            cout << "The method is not applicable\n";
-            return 0;
-        }
+    v0 = numV0 - (a2 / b2);
+    k0 = numK0 - (a1 / b1);
+
+    vector<double> ts;
+    vector<double> vs;
+    vector<double> ks;
+
+    // cout << T / N;
+
+    for (double t = 0; t <= T; t += T/N){
+        ts.push_back(t);
+        v =(v0 * cos(sqrt(a1 * a2) * t)) - (k0 * ((sqrt(a2) * b1)/(b2 * sqrt(a1))) * sin(sqrt(a1 * a2) * t));
+        k = (v0 * ((sqrt(a1) * b2) / (b1 * sqrt(a2))) * sin(sqrt(a1 * a2) * t) + (k0 * cos(sqrt(a1 * a2) * t)));
+
+        v += a2/b2;
+        k += a1/b1;
+
+        vs.push_back(v);
+        ks.push_back(k);
     }
 
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
-            if (i == j){
-                a.set(i, j, 0);
-            } else {
-                a.set(i, j, -1 * matA.getAt(i, j) / matA.getAt(i, i));   
-            }
-        }
-        b.set(i, 0, vectorB.getAt(i, 0) / matA.getAt(i, i));
+    cout << "t:\n";
+    for (int i = 0; i < ts.size(); i++){
+        cout << fixed << setprecision(2) << ts[i] << " ";
+    }
+    cout << endl;
+
+    cout << "v:\n";
+    for (int i = 0; i < vs.size(); i++){
+        cout << fixed << setprecision(2) << vs[i] << " ";
     }
 
-    cout << "alpha:\n";
-    cout << a;
-    cout << "beta:\n";
-    cout << b;
-    
-    Matrix C(n, n);
-    Matrix B(n, n);
+    cout << endl;
 
-    for (int i = 0; i < n; i++){
-        for (int j = i; j < n; j++){
-            C.set(i, j, a.getAt(i, j));
-        }
-        for (int j = 0; j < i; j++){
-            B.set(i, j, a.getAt(i, j));
-        }
+    cout << "k:\n";
+    for (int i = 0; i < ks.size(); i++){
+        cout << fixed << setprecision(2) << ks[i] << " ";
     }
-
-    cout << "B:\n";
-    cout << B;
-    cout << "C:\n";
-    cout << C;
-
-    Matrix x = b;
-    double e = 100;
-    IdentityMatrix I(n);
-    int i = 0;
-
-    Matrix inv = (static_cast<Matrix>(I) - B);
-    cout << "I-B:\n";
-    cout << inv;
-    inv = inverse(inv, n);
-    cout << "(I-B)_-1:\n";
-    cout << inv;
-
-    while (e > approxValue){
-        i++;
-        Matrix forE = x;
-        x = (inv * C) * forE;
-        Matrix tmp = inv * b;
-        x = x + tmp;
-        cout << "x(" << i << "):\n";
-        forE = forE - x;
-        e = 0;
-        for (int j = 0; j < n; j++){
-            e += forE.getAt(j, 0) * forE.getAt(j, 0);
-        }
-        e = sqrt(e);
-        cout << x;
-        cout << "e: " <<  e << endl;
-        if (e <= approxValue){
-            break;
-        }
-    }   
-
-    cout << "x~:\n";
-    cout << x;
 
     return 0;
 }
