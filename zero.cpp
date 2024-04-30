@@ -167,15 +167,15 @@ class SquareMatrix : public Matrix{
 public:
     SquareMatrix(int n) : Matrix(n, n){}
     SquareMatrix(int n, vector<vector<double> > matrix) : Matrix(n, n, matrix){}
-    
+
     friend ostream& operator<<(ostream& os, const SquareMatrix& mat) {
         for (int i = 0; i < mat.n; ++i) {
             string output;
             for (int j = 0; j < mat.n; ++j) {
                 if (j != mat.n - 1){
-                    cout << fixed << setprecision(4) << mat.matrix[i][j] << " ";
+                    cout << fixed << setprecision(2) << mat.matrix[i][j] << " ";
                 } else {
-                    cout << fixed << setprecision(4) << mat.matrix[i][j];
+                    cout << fixed << setprecision(2) << mat.matrix[i][j];
                 }
             }
             cout << endl;
@@ -191,7 +191,7 @@ public:
         }
         return is;
     }
-    
+
     SquareMatrix& operator= (const SquareMatrix& other){
         if (this != &other) {
             Matrix::operator=(other);
@@ -267,11 +267,7 @@ public:
 
     friend ostream& operator<<(ostream& os, const ColumnVector& mat){
         for (int i = 0; i < mat.n; ++i) {
-            if (i != mat.n - 1){
-                cout << fixed << setprecision(4) << mat.matrix[i][0] << endl;
-            } else {
-                cout << fixed << setprecision(4) << mat.matrix[i][0];
-            }
+            cout << fixed <<setprecision(2) << mat.matrix[i][0] << " ";
         }
         cout << endl;
         return os;
@@ -316,10 +312,10 @@ void print(Matrix matA, Matrix matB, int sizeA, int sizeB){
     for (int r = 0; r < sizeA; r++){
 
         for (int c = 0; c < sizeA; c++){
-            cout << fixed << setprecision(4) << matA.getAt(r, c) << " ";
+            cout << fixed << setprecision(2) << matA.getAt(r, c) << " ";
         }
         for (int c = 0; c < sizeB; c++){
-            cout << fixed << setprecision(4) << matB.getAt(r, c) << " ";
+            cout << fixed << setprecision(2) << matB.getAt(r, c) << " ";
         }
         cout << endl;
     }
@@ -383,7 +379,7 @@ Matrix inverse(Matrix matA, int n){
 void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
     int step = 0;
     int n = sizeA;
-    
+
     if (det(matA, n) == 0){
         return;
     }
@@ -441,59 +437,91 @@ void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
     }
 }
 
-int main() {
+//#ifdef WIN
+#define GNUPLOT_NAME "C:\\gnuplot\\bin\\gnuplot -persist"
+//#else
+//#define GNUPLOT_NAME "gnuplot -persist"
+//#endif
 
-    int numV0, numK0;
-    double a1, b1, a2, b2;
-    double v, k;
 
-    double T, N;
+int main()
+{
 
-    cin >> numV0 >> numK0;
-    cin >> a1 >> b1;
-    cin >> a2 >> b2;
-    cin >> T;
-    cin >> N;
+    //#ifdef WIN32
+    FILE* pipe = _popen(GNUPLOT_NAME, "w");
+    //#else
+    //    FILE* pipe = popen(GNUPLOT_NAME, "w");
+    //#endif
 
-    double v0, k0;
+    int sizeYmax = -100;
+    int sizeYmin = 100;
+    int sizeXmax = -100;
+    int sizeXmin = 100;
 
-    v0 = numV0 - (a2 / b2);
-    k0 = numK0 - (a1 / b1);
+    int step=0;
+    int n;
+    cin >> n;
+    vector<vector<double> > input = vector<vector<double> >(n, vector<double>(2));
+    for (int i = 0; i < n; i++){
+        double t, b;
+        cin >> t >> b;
+        // input.push_back(vector<double>(2));
+        input[i][0] = t;
+        input[i][1] = b;
+        sizeXmax = sizeXmax > input[i][0]? sizeXmax : input[i][0];
+        sizeYmax = sizeYmax > input[i][1]? sizeYmax : input[i][1];
 
-    vector<double> ts;
-    vector<double> vs;
-    vector<double> ks;
+        sizeXmin = sizeXmin < input[i][0]? sizeXmin : input[i][0];
+        sizeYmin = sizeYmin < input[i][1]? sizeYmin : input[i][1];
+    }
+    int k;
+    cin >> k;
 
-    // cout << T / N;
+    Matrix matA(n, k+1);
+    ColumnVector vectorB(n);
 
-    for (double t = 0; t <= T; t += T/N){
-        ts.push_back(t);
-        v =(v0 * cos(sqrt(a1 * a2) * t)) - (k0 * ((sqrt(a2) * b1)/(b2 * sqrt(a1))) * sin(sqrt(a1 * a2) * t));
-        k = (v0 * ((sqrt(a1) * b2) / (b1 * sqrt(a2))) * sin(sqrt(a1 * a2) * t) + (k0 * cos(sqrt(a1 * a2) * t)));
-
-        v += a2/b2;
-        k += a1/b1;
-
-        vs.push_back(v);
-        ks.push_back(k);
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < k+1; j++){
+            matA.set(i, j, pow(input[i][0], j));
+        }
+        vectorB.set(i, 0, input[i][1]);
     }
 
-    cout << "t:\n";
-    for (int i = 0; i < ts.size(); i++){
-        cout << fixed << setprecision(2) << ts[i] << " ";
-    }
-    cout << endl;
+    cout << "A:\n";
+    cout << matA;
 
-    cout << "v:\n";
-    for (int i = 0; i < vs.size(); i++){
-        cout << fixed << setprecision(2) << vs[i] << " ";
-    }
+    Matrix matAT = matA.transpose();
+    Matrix matATmatA = matAT * matA;
+    cout << "A^T*A:\n";
+    cout << matATmatA;
+    Matrix inverseA = inverse(matATmatA, k+1);
+    cout << "(A^T*A)^-1:\n";
+    cout << inverseA;
+    Matrix matATb = matAT * vectorB;
+    cout << "A^T*b:\n";
+    cout << matATb;
+    Matrix x = inverseA * matATb;
+    cout << "x~:\n";
+    cout << x;
 
-    cout << endl;
+    string graphic = "";
+    if (pipe != NULL){
 
-    cout << "k:\n";
-    for (int i = 0; i < ks.size(); i++){
-        cout << fixed << setprecision(2) << ks[i] << " ";
+        for (int i = 0; i < k + 1; i++){
+            graphic = graphic + to_string( x.getAt(i, 0)) + " * x**" + to_string(i);
+            if (i != k){
+                graphic += "+";
+            }
+        }
+        fprintf(pipe, "set xrange [%f: %f]\n", sizeXmin - 3, sizeXmax + 3);
+        fprintf(pipe, "set yrange [%f: %f]\n", sizeYmin - 3, sizeYmax + 3);
+
+
+        fprintf(pipe, "plot '-' with points title 'data points' pointtype 5, %s with lines title "
+                      "'approximation' linetype 1\n", graphic.c_str());
+
+        for (int i = 0; i < )
+
     }
 
     return 0;
