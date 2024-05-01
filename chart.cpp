@@ -1,68 +1,105 @@
 #include <iostream>
-#include <cstdio>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <string>
 #include <vector>
+#include <iomanip>
+#include <cmath>
+#include <cstdio>
+
+using namespace std;
+
 
 //#ifdef WIN
 #define GNUPLOT_NAME "C:\\gnuplot\\bin\\gnuplot -persist"
 //#else
-//#define GNUPLOT_NAME "gnuplot -persist"
+#define GNUPLOT_NAME "gnuplot -persist"
+// #define GNUPLOT_NAME "/opt/homebrew/Cellar/gnuplot/6.0.0/bin/gnuplot -persist"
 //#endif
-
-using namespace std;
-
-// Function to calculate least square approximation
-void leastSquareApproximation(const vector<double>& x, const vector<double>& y, double& m, double& c) {
-    double sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x_squared = 0.0;
-
-    for (size_t i = 0; i < x.size(); ++i) {
-        sum_x += x[i];
-        sum_y += y[i];
-        sum_xy += x[i] * y[i];
-        sum_x_squared += x[i] * x[i];
-    }
-
-    double n = static_cast<double>(x.size());
-    m = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x * sum_x);
-    c = (sum_y - m * sum_x) / n;
-}
-
-using namespace std;
-
 
 
 int main()
 {
+
     //#ifdef WIN32
-    FILE* pipe = _popen(GNUPLOT_NAME, "w");
+    // FILE* pipe = _popen(GNUPLOT_NAME, "w");
     //#else
-    //    FILE* pipe = popen(GNUPLOT_NAME, "w");
-    //#endif
+    FILE* pipe = popen(GNUPLOT_NAME, "w");
+    //#endifint 
 
-    // Input data
-    vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-    vector<double> y = {2.3, 3.5, 4.2, 5.0, 5.8, 6.4, 7.2, 8.1, 8.9, 9.7, 10.5, 11.2, 12.0, 12.9, 13.6};
+    int numV0, numK0;
+    double a1, b1, a2, b2;
+    double v, k;
 
-    // Calculate least square approximation
-    double m, c;
-    leastSquareApproximation(x, y, m, c);
+    double T, N;
 
+    cin >> numV0 >> numK0;
+    cin >> a1 >> b1;
+    cin >> a2 >> b2;
+    cin >> T;
+    cin >> N;
 
-    // Create Gnuplot object
-    if (pipe != NULL){
+    double v0, k0;
 
+    v0 = numV0 - (a2 / b2);
+    k0 = numK0 - (a1 / b1);
 
-        fflush(pipe);
-        //#ifdef WIN32
-        _pclose(pipe);
-        //#else
-        //        pclose(pipe);
-        //#endif
+    vector<double> ts;
+    vector<double> vs;
+    vector<double> ks;
+
+    // cout << T / N;
+
+    for (double t = 0; t <= T; t += T/N){
+        ts.push_back(t);
+        v =(v0 * cos(sqrt(a1 * a2) * t)) - (k0 * ((sqrt(a2) * b1)/(b2 * sqrt(a1))) * sin(sqrt(a1 * a2) * t));
+        k = (v0 * ((sqrt(a1) * b2) / (b1 * sqrt(a2))) * sin(sqrt(a1 * a2) * t) + (k0 * cos(sqrt(a1 * a2) * t)));
+
+        v += a2/b2;
+        k += a1/b1;
+
+        vs.push_back(v);
+        ks.push_back(k);
     }
 
-    // Set labels and title
+    cout << "t:\n";
+    for (int i = 0; i < ts.size(); i++){
+        cout << fixed << setprecision(2) << ts[i] << " ";
+    }
+    cout << endl;
+
+    cout << "v:\n";
+    for (int i = 0; i < vs.size(); i++){
+        cout << fixed << setprecision(2) << vs[i] << " ";
+    }
+
+    cout << endl;
+
+    cout << "k:\n";
+    for (int i = 0; i < ks.size(); i++){
+        cout << fixed << setprecision(2) << ks[i] << " ";
+    }
+    
+    if (pipe != NULL) {
+        string graphic = "";
+
+        fprintf(pipe, "set xlabel 'Prey'\n");
+        fprintf(pipe, "set ylabel 'Predator'\n");
+
+        fprintf(pipe, "plot '-' with lines title 'v(t) & k(t)', '-' with lines title 'v(k)'\n");
+
+        for (int i = 0; i < ts.size(); i++) {
+            fprintf(pipe, "%f %f\n", ts[i], vs[i]);
+        }
+        fprintf(pipe, "e\n");
+
+        for (int i = 0; i < ts.size(); i++) {
+            fprintf(pipe, "%f %f\n", ks[i], vs[i]);
+        }
+        fprintf(pipe, "e\n");
+
+        fflush(pipe);
+        fprintf(pipe, "exit\n");
+        pclose(pipe);
+    }
 
 
     return 0;

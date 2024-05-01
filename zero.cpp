@@ -3,6 +3,7 @@
 #include <vector>
 #include <iomanip>
 #include <cmath>
+#include <cstdio>
 
 using namespace std;
 
@@ -440,7 +441,8 @@ void SolvingSLAE(Matrix matA, ColumnVector vectorB, int sizeA, int sizeB){
 //#ifdef WIN
 #define GNUPLOT_NAME "C:\\gnuplot\\bin\\gnuplot -persist"
 //#else
-//#define GNUPLOT_NAME "gnuplot -persist"
+#define GNUPLOT_NAME "gnuplot -persist"
+// #define GNUPLOT_NAME "/opt/homebrew/Cellar/gnuplot/6.0.0/bin/gnuplot -persist"
 //#endif
 
 
@@ -448,9 +450,9 @@ int main()
 {
 
     //#ifdef WIN32
-    FILE* pipe = _popen(GNUPLOT_NAME, "w");
+    // FILE* pipe = _popen(GNUPLOT_NAME, "w");
     //#else
-    //    FILE* pipe = popen(GNUPLOT_NAME, "w");
+    FILE* pipe = popen(GNUPLOT_NAME, "w");
     //#endif
 
     int sizeYmax = -100;
@@ -504,8 +506,11 @@ int main()
     cout << "x~:\n";
     cout << x;
 
-    string graphic = "";
     if (pipe != NULL){
+        string graphic = "";
+
+        fprintf(pipe, "set xrange [%d: %d]\n", sizeXmin - 3, sizeXmax + 3);
+        fprintf(pipe, "set yrange [%d: %d]\n", sizeYmin - 3, sizeYmax + 3);
 
         for (int i = 0; i < k + 1; i++){
             graphic = graphic + to_string( x.getAt(i, 0)) + " * x**" + to_string(i);
@@ -513,14 +518,14 @@ int main()
                 graphic += "+";
             }
         }
-        fprintf(pipe, "set xrange [%f: %f]\n", sizeXmin - 3, sizeXmax + 3);
-        fprintf(pipe, "set yrange [%f: %f]\n", sizeYmin - 3, sizeYmax + 3);
+        
 
 
-        fprintf(pipe, "plot '-' with points title 'data points' pointtype 5, %s with lines title "
-                      "'approximation' linetype 1\n", graphic.c_str());
+        fprintf(pipe, "plot '-' with points title '' pointtype 5, %s with lines title 'appr' linetype 2\n", graphic.c_str());
 
-        for (int i = 0; i < )
+        for (int i = 0; i < n; i++){
+            fprintf(pipe, "%f %f\n", input[i][0], input[i][1]);
+        }
 
     }
 
